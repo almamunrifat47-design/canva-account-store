@@ -1,1351 +1,2200 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Editor</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/grapesjs@0.22.10/dist/css/grapes.min.css"
->
+  <title>Visual Editor</title>
 
-<style>
-*{box-sizing:border-box}
+  <!-- GrapesJS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/grapesjs@0.22.10/dist/css/grapes.min.css"
+  >
 
-html,body{
-  margin:0;
-  height:100%;
-  font-family:Arial,Helvetica,sans-serif;
-  background:#111;
-  overflow:hidden;
-}
+  <style>
 
-/* TOP BAR */
-.topbar{
-  height:62px;
-  background:#17151f;
-  color:#fff;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:0 14px;
-  position:fixed;
-  top:0;
-  left:0;
-  right:0;
-  z-index:100;
-}
+    * {
+      box-sizing: border-box;
+    }
 
-.logo{
-  font-size:18px;
-  font-weight:800;
-  margin-right:auto;
-}
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #111;
+    }
 
-.top-btn{
-  border:0;
-  border-radius:9px;
-  padding:10px 15px;
-  font-weight:700;
-  cursor:pointer;
-}
+    /* =========================
+       TOP BAR
+    ========================= */
 
-.preview{
-  background:#fff;
-  color:#111;
-}
+    .topbar {
+      height: 62px;
+      width: 100%;
+      background: #17151f;
+      color: white;
 
-.save{
-  background:#6c4df6;
-  color:#fff;
-}
+      display: flex;
+      align-items: center;
 
-.photo{
-  background:#208f79;
-  color:#fff;
-}
+      padding: 0 14px;
+      gap: 10px;
 
-.logout{
-  background:#fff;
-  color:#111;
-}
+      position: fixed;
+      top: 0;
+      left: 0;
 
-/* WORKSPACE */
-.workspace{
-  position:fixed;
-  top:62px;
-  left:0;
-  right:0;
-  bottom:0;
-  display:grid;
-  grid-template-columns:220px minmax(0,1fr) 270px;
-}
+      z-index: 9999;
+    }
 
-/* LEFT */
-.leftbar{
-  background:#17151f;
-  color:#fff;
-  overflow-y:auto;
-  padding:14px;
-  border-right:1px solid #302c3a;
-}
+    .logo {
+      font-size: 19px;
+      font-weight: 800;
+      margin-right: auto;
+    }
 
-.left-title{
-  font-size:15px;
-  font-weight:800;
-  margin-bottom:15px;
-}
+    .top-btn {
+      border: none;
+      border-radius: 9px;
+      padding: 10px 16px;
 
-.category{
-  color:#a98cff;
-  font-size:11px;
-  font-weight:800;
-  text-transform:uppercase;
-  margin:17px 0 8px;
-}
+      font-size: 14px;
+      font-weight: 700;
 
-.elements{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:7px;
-}
+      cursor: pointer;
+    }
 
-.element{
-  background:#24212d;
-  border:1px solid #3a3545;
-  color:#fff;
-  border-radius:8px;
-  padding:11px 5px;
-  font-size:12px;
-  cursor:pointer;
-  text-align:center;
-}
+    .top-btn:hover {
+      opacity: 0.9;
+    }
 
-.element:hover{
-  background:#342f40;
-  border-color:#8065ff;
-}
+    .preview-btn {
+      background: white;
+      color: #111;
+    }
 
-.upload{
-  width:100%;
-  margin-top:15px;
-  padding:11px;
-  border:0;
-  border-radius:8px;
-  background:#6c4df6;
-  color:#fff;
-  font-weight:700;
-  cursor:pointer;
-}
+    .save-btn {
+      background: #6c4df6;
+      color: white;
+    }
 
-/* CANVAS */
-.canvas{
-  background:#e8e8ed;
-  overflow:hidden;
-  min-width:0;
-}
+    .upload-btn {
+      background: #168c76;
+      color: white;
+    }
 
-#editor{
-  height:100%;
-}
+    .logout-btn {
+      background: white;
+      color: #111;
+    }
 
-/* RIGHT */
-.rightbar{
-  background:#17151f;
-  color:#fff;
-  overflow-y:auto;
-  border-left:1px solid #302c3a;
-}
 
-.right-title{
-  padding:15px;
-  font-weight:800;
-  border-bottom:1px solid #302c3a;
-}
+    /* =========================
+       MAIN AREA
+    ========================= */
 
-.settings{
-  padding:15px;
-}
+    .workspace {
+      position: fixed;
 
-.setting{
-  margin-bottom:15px;
-}
+      top: 62px;
+      left: 0;
+      right: 0;
+      bottom: 0;
 
-.setting label{
-  display:block;
-  font-size:12px;
-  color:#aaa;
-  margin-bottom:6px;
-}
+      display: grid;
 
-.setting input,
-.setting select,
-.setting textarea{
-  width:100%;
-  padding:9px;
-  background:#24212d;
-  color:#fff;
-  border:1px solid #403b4d;
-  border-radius:7px;
-}
+      grid-template-columns:
+        235px
+        minmax(0, 1fr)
+        280px;
+    }
 
-.setting button{
-  width:100%;
-  border:0;
-  border-radius:8px;
-  padding:10px;
-  background:#6c4df6;
-  color:white;
-  cursor:pointer;
-  font-weight:700;
-}
 
-#traits,
-#styles{
-  padding:10px 15px;
-}
+    /* =========================
+       LEFT SIDEBAR
+    ========================= */
 
-/* GRAPES */
-.gjs-one-bg{
-  background:#17151f;
-}
+    .left-sidebar {
 
-.gjs-two-color{
-  color:#ddd;
-}
+      background: #17151f;
 
-.gjs-three-bg{
-  background:#24212d;
-}
+      border-right: 1px solid #302c3a;
 
-.gjs-four-color{
-  color:#a98cff;
-}
+      color: white;
 
-.gjs-pn-panels{
-  display:none!important;
-}
+      overflow-y: auto;
 
-/* MESSAGE */
-.message{
-  position:fixed;
-  top:75px;
-  left:50%;
-  transform:translateX(-50%);
-  background:white;
-  color:#111;
-  padding:11px 18px;
-  border-radius:10px;
-  box-shadow:0 8px 30px #0005;
-  z-index:500;
-  display:none;
-}
+      padding: 12px;
+    }
 
-/* MOBILE */
-@media(max-width:900px){
-  .workspace{
-    grid-template-columns:170px minmax(0,1fr);
-  }
+    .sidebar-title {
 
-  .rightbar{
-    display:none;
-  }
+      font-size: 15px;
+      font-weight: 800;
 
-  .top-btn{
-    padding:8px 10px;
-    font-size:12px;
-  }
-}
+      padding: 10px 5px 14px;
 
-@media(max-width:600px){
-  .workspace{
-    grid-template-columns:125px minmax(0,1fr);
-  }
+      color: white;
+    }
 
-  .logo{
-    font-size:14px;
-  }
+    .sidebar-subtitle {
 
-  .photo{
-    display:none;
-  }
+      font-size: 11px;
 
-  .leftbar{
-    padding:8px;
-  }
+      color: #999;
 
-  .elements{
-    grid-template-columns:1fr;
-  }
+      padding: 0 5px 12px;
+    }
 
-  .element{
-    padding:9px 3px;
-  }
-}
-</style>
+
+    /* GrapesJS blocks */
+
+    #blocks {
+
+      width: 100%;
+    }
+
+    .gjs-blocks-c {
+
+      display: grid !important;
+
+      grid-template-columns:
+        repeat(2, 1fr);
+
+      gap: 8px;
+
+      padding: 0 !important;
+    }
+
+    .gjs-block {
+
+      width: auto !important;
+
+      min-height: 72px;
+
+      margin: 0 !important;
+
+      padding: 10px 5px !important;
+
+      background: #24212d !important;
+
+      border: 1px solid #3a3545 !important;
+
+      border-radius: 8px !important;
+
+      color: white !important;
+
+      box-shadow: none !important;
+    }
+
+    .gjs-block:hover {
+
+      border-color: #8065ff !important;
+
+      background: #312d3d !important;
+    }
+
+    .gjs-block-label {
+
+      font-size: 12px;
+    }
+
+
+    .upload-area {
+
+      margin-top: 18px;
+
+      padding-top: 15px;
+
+      border-top: 1px solid #302c3a;
+    }
+
+    .upload-area button {
+
+      width: 100%;
+
+      padding: 11px;
+
+      border: none;
+
+      border-radius: 8px;
+
+      background: #6c4df6;
+
+      color: white;
+
+      font-weight: 700;
+
+      cursor: pointer;
+    }
+
+
+    /* =========================
+       CANVAS
+    ========================= */
+
+    .canvas-area {
+
+      background: #e6e6eb;
+
+      min-width: 0;
+
+      overflow: hidden;
+    }
+
+    #editor {
+
+      width: 100%;
+
+      height: 100%;
+    }
+
+
+    /* =========================
+       RIGHT SIDEBAR
+    ========================= */
+
+    .right-sidebar {
+
+      background: #17151f;
+
+      border-left: 1px solid #302c3a;
+
+      color: white;
+
+      overflow-y: auto;
+    }
+
+    .right-title {
+
+      padding: 15px;
+
+      border-bottom: 1px solid #302c3a;
+
+      font-weight: 800;
+
+      font-size: 14px;
+    }
+
+    #traits {
+
+      padding: 10px;
+    }
+
+    #styles {
+
+      padding: 10px;
+    }
+
+
+    /* GrapesJS right panel */
+
+    .gjs-sm-sector {
+
+      border-color: #35313f !important;
+    }
+
+    .gjs-sm-sector-title {
+
+      background: #211e29 !important;
+
+      color: white !important;
+    }
+
+    .gjs-sm-property {
+
+      color: #ddd !important;
+    }
+
+    .gjs-field {
+
+      background: #24212d !important;
+
+      border-color: #403b4d !important;
+
+      color: white !important;
+    }
+
+    .gjs-field input,
+    .gjs-field select {
+
+      color: white !important;
+    }
+
+    .gjs-trt-trait {
+
+      color: white !important;
+    }
+
+
+    /* =========================
+       MESSAGE
+    ========================= */
+
+    #message {
+
+      position: fixed;
+
+      top: 75px;
+
+      left: 50%;
+
+      transform: translateX(-50%);
+
+      background: white;
+
+      color: #111;
+
+      padding: 11px 18px;
+
+      border-radius: 9px;
+
+      box-shadow:
+        0 10px 35px rgba(0,0,0,.25);
+
+      z-index: 20000;
+
+      display: none;
+
+      font-weight: 600;
+    }
+
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media(max-width: 900px) {
+
+      .workspace {
+
+        grid-template-columns:
+          180px
+          minmax(0, 1fr)
+          230px;
+      }
+
+      .logo {
+
+        font-size: 15px;
+      }
+
+      .top-btn {
+
+        padding: 8px 10px;
+
+        font-size: 12px;
+      }
+
+    }
+
+
+    @media(max-width: 700px) {
+
+      .workspace {
+
+        grid-template-columns:
+          145px
+          minmax(0, 1fr);
+      }
+
+      .right-sidebar {
+
+        display: none;
+      }
+
+      .gjs-blocks-c {
+
+        grid-template-columns: 1fr;
+      }
+
+      .upload-btn {
+
+        display: none;
+      }
+
+    }
+
+
+    @media(max-width: 500px) {
+
+      .topbar {
+
+        gap: 5px;
+      }
+
+      .logo {
+
+        font-size: 13px;
+      }
+
+      .preview-btn {
+
+        display: none;
+      }
+
+      .logout-btn {
+
+        display: none;
+      }
+
+    }
+
+  </style>
 </head>
+
 
 <body>
 
-<div class="topbar">
 
-  <div class="logo">
-    🎨 Visual Editor
-  </div>
+  <!-- =================================
+       TOP BAR
+  ================================== -->
 
-  <button class="top-btn photo" id="photoBtn">
-    📷 Add Photo
-  </button>
+  <header class="topbar">
 
-  <button class="top-btn preview" id="previewBtn">
-    Preview
-  </button>
-
-  <button class="top-btn save" id="saveBtn">
-    💾 Save Changes
-  </button>
-
-  <button class="top-btn logout" id="logoutBtn">
-    Logout
-  </button>
-
-</div>
-
-
-<div class="workspace">
-
-  <!-- LEFT SIDEBAR -->
-
-  <aside class="leftbar">
-
-    <div class="left-title">
-      ➕ Add Elements
+    <div class="logo">
+      🎨 Visual Editor
     </div>
 
 
-    <div class="category">
-      Basic
-    </div>
-
-    <div class="elements">
-
-      <button class="element" data-type="text">
-        T<br>Text
-      </button>
-
-      <button class="element" data-type="heading">
-        H<br>Heading
-      </button>
-
-      <button class="element" data-type="link">
-        🔗<br>Link
-      </button>
-
-      <button class="element" data-type="button">
-        🔘<br>Button
-      </button>
-
-      <button class="element" data-type="image">
-        🖼️<br>Image
-      </button>
-
-      <button class="element" data-type="divider">
-        ─<br>Divider
-      </button>
-
-    </div>
-
-
-    <div class="category">
-      Layout
-    </div>
-
-    <div class="elements">
-
-      <button class="element" data-type="section">
-        ▣<br>Section
-      </button>
-
-      <button class="element" data-type="columns">
-        ▥<br>2 Columns
-      </button>
-
-      <button class="element" data-type="spacer">
-        ↕<br>Spacer
-      </button>
-
-      <button class="element" data-type="card">
-        ▭<br>Card
-      </button>
-
-      <button class="element" data-type="hero">
-        ⭐<br>Hero
-      </button>
-
-      <button class="element" data-type="features">
-        ☷<br>Features
-      </button>
-
-    </div>
-
-
-    <div class="category">
-      Media
-    </div>
-
-    <div class="elements">
-
-      <button class="element" data-type="video">
-        ▶<br>Video
-      </button>
-
-      <button class="element" data-type="icon">
-        ✦<br>Icon
-      </button>
-
-    </div>
-
-
-    <button class="upload" id="uploadBtn">
-      📁 Upload Photo
+    <button
+      id="uploadTop"
+      class="top-btn upload-btn"
+    >
+      📷 Add Photo
     </button>
 
-    <input
-      type="file"
-      id="imageInput"
-      accept="image/*"
-      hidden
+
+    <button
+      id="previewBtn"
+      class="top-btn preview-btn"
     >
-
-  </aside>
-
-
-  <!-- CANVAS -->
-
-  <main class="canvas">
-
-    <div id="editor"></div>
-
-  </main>
+      Preview
+    </button>
 
 
-  <!-- RIGHT SETTINGS -->
-
-  <aside class="rightbar">
-
-    <div class="right-title">
-      ⚙️ Element Settings
-    </div>
-
-    <div id="traits"></div>
-
-    <div class="right-title">
-      🎨 Style
-    </div>
-
-    <div id="styles"></div>
-
-  </aside>
-
-</div>
+    <button
+      id="saveBtn"
+      class="top-btn save-btn"
+    >
+      💾 Save Changes
+    </button>
 
 
-<div id="message" class="message"></div>
+    <button
+      id="logoutBtn"
+      class="top-btn logout-btn"
+    >
+      Logout
+    </button>
+
+  </header>
 
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<script src="config.js"></script>
+  <!-- =================================
+       WORKSPACE
+  ================================== -->
 
-<script src="https://unpkg.com/grapesjs@0.22.10/dist/grapes.min.js"></script>
-
-
-<script>
-
-const sb = supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
+  <div class="workspace">
 
 
-const message = document.getElementById("message");
+    <!-- =================================
+         LEFT
+    ================================== -->
+
+    <aside class="left-sidebar">
+
+      <div class="sidebar-title">
+        ➕ Add Elements
+      </div>
+
+      <div class="sidebar-subtitle">
+        Drag an element onto the page
+      </div>
 
 
-function showMessage(text){
+      <!-- GrapesJS Blocks -->
 
-  message.textContent = text;
-
-  message.style.display = "block";
-
-  setTimeout(()=>{
-    message.style.display = "none";
-  },2500);
-
-}
+      <div id="blocks"></div>
 
 
-/* DEFAULT PAGE */
+      <div class="upload-area">
 
-const defaultHTML = `
+        <button id="uploadSide">
+          📁 Upload Image
+        </button>
 
-<nav class="nav">
+      </div>
 
-  <a class="logo" href="index.html">
-    Canva Account Store
-  </a>
 
-  <div class="navlinks">
+      <input
+        type="file"
+        id="imageInput"
+        accept="image/*"
+        hidden
+      >
 
-    <a href="#products">
-      Products
-    </a>
+    </aside>
 
-    <a href="order-status.html">
-      Order Status
-    </a>
 
-    <a class="btn" href="order.html">
-      Buy Now
-    </a>
+
+    <!-- =================================
+         CENTER
+    ================================== -->
+
+    <main class="canvas-area">
+
+      <div id="editor"></div>
+
+    </main>
+
+
+
+    <!-- =================================
+         RIGHT
+    ================================== -->
+
+    <aside class="right-sidebar">
+
+
+      <div class="right-title">
+        ⚙️ Element Settings
+      </div>
+
+
+      <div id="traits"></div>
+
+
+      <div class="right-title">
+        🎨 Style
+      </div>
+
+
+      <div id="styles"></div>
+
+
+    </aside>
+
 
   </div>
 
-</nav>
 
 
-<section class="hero">
+  <div id="message"></div>
 
-  <h1>
-    Choose Your Canva Account
-  </h1>
 
-  <p>
-    Simple ordering for Canva Pro and Owner accounts.
-  </p>
 
-</section>
+  <!-- =================================
+       SCRIPTS
+  ================================== -->
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<main class="container">
 
-  <div class="cards">
+  <!-- Your existing config -->
 
-    <article class="card">
+  <script src="config.js"></script>
 
-      <h2>
-        Canva Pro Account
-      </h2>
 
-      <p>
-        Premium Canva account.
-      </p>
+  <!-- GrapesJS -->
 
-      <div class="price">
-        ৳500
-      </div>
+  <script src="https://unpkg.com/grapesjs@0.22.10/dist/grapes.min.js"></script>
 
-      <ul class="features">
 
-        <li>
-          Premium features
-        </li>
 
-        <li>
-          Easy ordering
-        </li>
+  <script>
 
-        <li>
-          Fast delivery
-        </li>
 
-      </ul>
+    /* =========================================
+       SUPABASE
+    ========================================= */
 
-      <a
-        class="btn"
-        href="order.html?product=canva-pro"
-      >
-        Buy Now
-      </a>
+    const sb = supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
 
-    </article>
 
+    /* =========================================
+       MESSAGE
+    ========================================= */
 
-    <article class="card">
+    function showMessage(text) {
 
-      <h2>
-        Canva Owner Account
-      </h2>
+      const box =
+        document.getElementById("message");
 
-      <p>
-        Canva owner account.
-      </p>
+      box.textContent = text;
 
-      <div class="price">
-        ৳1500
-      </div>
+      box.style.display = "block";
 
-      <ul class="features">
 
-        <li>
-          Owner access
-        </li>
+      setTimeout(() => {
 
-        <li>
-          Easy ordering
-        </li>
+        box.style.display = "none";
 
-        <li>
-          Fast delivery
-        </li>
-
-      </ul>
-
-      <a
-        class="btn"
-        href="order.html?product=canva-owner"
-      >
-        Buy Now
-      </a>
-
-    </article>
-
-  </div>
-
-</main>
-
-`;
-
-
-/* PAGE CSS */
-
-const defaultCSS = `
-
-*{
-  box-sizing:border-box;
-}
-
-body{
-  margin:0;
-  font-family:Inter,Arial,sans-serif;
-  background:#f7f7fb;
-  color:#16161d;
-}
-
-a{
-  text-decoration:none;
-  color:inherit;
-}
-
-.nav{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:20px;
-  padding:18px 6%;
-  background:#fff;
-  border-bottom:1px solid #eee;
-}
-
-.logo{
-  font-weight:800;
-  font-size:20px;
-}
-
-.navlinks{
-  display:flex;
-  gap:20px;
-  align-items:center;
-}
-
-.btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  border:0;
-  border-radius:10px;
-  padding:12px 18px;
-  background:#6c4df6;
-  color:#fff;
-  font-weight:700;
-}
-
-.hero{
-  text-align:center;
-  padding:80px 20px;
-}
-
-.hero h1{
-  font-size:48px;
-  margin:0 0 15px;
-}
-
-.hero p{
-  color:#666;
-  font-size:18px;
-}
-
-.container{
-  width:min(1100px,100%);
-  margin:auto;
-  padding:50px 20px;
-}
-
-.cards{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:22px;
-}
-
-.card{
-  background:#fff;
-  border:1px solid #e8e8ef;
-  border-radius:18px;
-  padding:28px;
-  box-shadow:0 8px 30px #00000008;
-}
-
-.price{
-  font-size:32px;
-  font-weight:800;
-  margin:18px 0;
-}
-
-.features{
-  line-height:2;
-}
-
-@media(max-width:700px){
-
-  .navlinks{
-    gap:8px;
-  }
-
-  .cards{
-    grid-template-columns:1fr;
-  }
-
-  .hero h1{
-    font-size:34px;
-  }
-
-}
-
-`;
-
-
-/* GRAPESJS */
-
-let editor;
-
-
-async function startEditor(){
-
-  /* ADMIN CHECK */
-
-  const {
-    data:{
-      user
-    }
-  } = await sb.auth.getUser();
-
-
-  if(!user){
-
-    location.href="admin.html";
-
-    return;
-
-  }
-
-
-  const {
-    data:admin
-  } = await sb
-    .from("admin_users")
-    .select("id")
-    .eq("id",user.id)
-    .maybeSingle();
-
-
-  if(!admin){
-
-    await sb.auth.signOut();
-
-    location.href="admin.html";
-
-    return;
-
-  }
-
-
-  /* LOAD SAVED DESIGN */
-
-  let html = defaultHTML;
-
-  let css = defaultCSS;
-
-
-  const {
-    data:saved
-  } = await sb
-    .from("site_pages")
-    .select("html,css")
-    .eq("slug","home")
-    .maybeSingle();
-
-
-  if(saved && saved.html){
-
-    html = saved.html;
-
-    css = saved.css || css;
-
-  }
-
-
-  /* CREATE EDITOR */
-
-  editor = grapesjs.init({
-
-    container:"#editor",
-
-    height:"100%",
-
-    fromElement:false,
-
-    components:html,
-
-    style:css,
-
-    storageManager:false,
-
-    selectorManager:{
-      componentFirst:true
-    },
-
-    deviceManager:{
-      devices:[
-        {
-          name:"Desktop",
-          width:""
-        },
-        {
-          name:"Tablet",
-          width:"768px"
-        },
-        {
-          name:"Mobile",
-          width:"375px"
-        }
-      ]
-    },
-
-    panels:{
-      defaults:[]
-    },
-
-    traitManager:{
-      appendTo:"#traits"
-    },
-
-    styleManager:{
-      appendTo:"#styles",
-
-      sectors:[
-        {
-          name:"Dimension",
-          open:true,
-
-          properties:[
-            "width",
-            "height",
-            "min-height",
-            "max-width"
-          ]
-        },
-
-        {
-          name:"Spacing",
-          open:false,
-
-          properties:[
-            "margin",
-            "padding"
-          ]
-        },
-
-        {
-          name:"Typography",
-          open:false,
-
-          properties:[
-            "font-family",
-            "font-size",
-            "font-weight",
-            "color",
-            "text-align",
-            "line-height"
-          ]
-        },
-
-        {
-          name:"Background",
-          open:false,
-
-          properties:[
-            "background-color",
-            "background-image"
-          ]
-        },
-
-        {
-          name:"Border",
-          open:false,
-
-          properties:[
-            "border",
-            "border-radius"
-          ]
-        }
-      ]
+      }, 2500);
 
     }
 
-  });
 
 
-  /* SELECT ELEMENT */
+    /* =========================================
+       DEFAULT HTML
+    ========================================= */
 
-  editor.on(
-    "component:selected",
-    component => {
+    const defaultHTML = `
 
-      if(!component){
+      <nav class="site-nav">
 
-        return;
+        <a
+          href="index.html"
+          class="site-logo"
+        >
+          Canva Account Store
+        </a>
+
+
+        <div class="nav-links">
+
+          <a href="#products">
+            Products
+          </a>
+
+          <a href="order-status.html">
+            Order Status
+          </a>
+
+          <a
+            href="order.html"
+            class="main-button"
+          >
+            Buy Now
+          </a>
+
+        </div>
+
+      </nav>
+
+
+
+      <section class="hero-section">
+
+        <h1>
+          Choose Your Canva Account
+        </h1>
+
+        <p>
+          Simple ordering for Canva Pro and Owner accounts.
+        </p>
+
+      </section>
+
+
+
+      <section
+        id="products"
+        class="products-section"
+      >
+
+        <div class="product-grid">
+
+
+          <div class="product-card">
+
+            <h2>
+              Canva Pro Account
+            </h2>
+
+            <p>
+              Premium Canva account.
+            </p>
+
+            <div class="price">
+              ৳500
+            </div>
+
+            <ul>
+
+              <li>
+                Premium features
+              </li>
+
+              <li>
+                Easy ordering
+              </li>
+
+              <li>
+                Fast delivery
+              </li>
+
+            </ul>
+
+            <a
+              href="order.html?product=canva-pro"
+              class="main-button"
+            >
+              Buy Now
+            </a>
+
+          </div>
+
+
+
+          <div class="product-card">
+
+            <h2>
+              Canva Owner Account
+            </h2>
+
+            <p>
+              Canva owner account.
+            </p>
+
+            <div class="price">
+              ৳1500
+            </div>
+
+            <ul>
+
+              <li>
+                Owner access
+              </li>
+
+              <li>
+                Easy ordering
+              </li>
+
+              <li>
+                Fast delivery
+              </li>
+
+            </ul>
+
+            <a
+              href="order.html?product=canva-owner"
+              class="main-button"
+            >
+              Buy Now
+            </a>
+
+          </div>
+
+
+        </div>
+
+      </section>
+
+    `;
+
+
+
+    /* =========================================
+       DEFAULT CSS
+    ========================================= */
+
+    const defaultCSS = `
+
+      * {
+        box-sizing: border-box;
+      }
+
+
+      body {
+
+        margin: 0;
+
+        font-family:
+          Arial,
+          Helvetica,
+          sans-serif;
+
+        background: #f7f7fb;
+
+        color: #17151f;
+      }
+
+
+      a {
+
+        text-decoration: none;
+
+        color: inherit;
+      }
+
+
+      .site-nav {
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        gap: 20px;
+
+        padding:
+          18px
+          6%;
+
+        background: white;
+
+        border-bottom:
+          1px solid #eeeeee;
+      }
+
+
+      .site-logo {
+
+        font-size: 21px;
+
+        font-weight: 800;
+      }
+
+
+      .nav-links {
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 22px;
+      }
+
+
+      .main-button {
+
+        display: inline-flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        padding:
+          12px
+          19px;
+
+        border-radius: 10px;
+
+        background: #6c4df6;
+
+        color: white;
+
+        font-weight: 700;
+      }
+
+
+      .hero-section {
+
+        text-align: center;
+
+        padding:
+          85px
+          20px;
+      }
+
+
+      .hero-section h1 {
+
+        margin: 0 0 15px;
+
+        font-size: 48px;
+
+        line-height: 1.1;
+      }
+
+
+      .hero-section p {
+
+        margin: 0;
+
+        color: #666;
+
+        font-size: 18px;
+      }
+
+
+      .products-section {
+
+        max-width: 1100px;
+
+        margin: auto;
+
+        padding:
+          40px
+          20px
+          80px;
+      }
+
+
+      .product-grid {
+
+        display: grid;
+
+        grid-template-columns:
+          repeat(2, 1fr);
+
+        gap: 25px;
+      }
+
+
+      .product-card {
+
+        background: white;
+
+        border:
+          1px solid #e8e8ee;
+
+        border-radius: 18px;
+
+        padding: 30px;
+
+        box-shadow:
+          0 10px 35px
+          rgba(0,0,0,.06);
+      }
+
+
+      .product-card h2 {
+
+        margin-top: 0;
+      }
+
+
+      .price {
+
+        font-size: 32px;
+
+        font-weight: 800;
+
+        margin:
+          20px
+          0;
+      }
+
+
+      .product-card li {
+
+        margin:
+          8px
+          0;
+      }
+
+
+      @media(max-width:700px) {
+
+        .site-nav {
+
+          flex-direction: column;
+
+          align-items: flex-start;
+        }
+
+
+        .nav-links {
+
+          width: 100%;
+
+          flex-wrap: wrap;
+
+          gap: 10px;
+        }
+
+
+        .hero-section {
+
+          padding:
+            55px
+            18px;
+        }
+
+
+        .hero-section h1 {
+
+          font-size: 34px;
+        }
+
+
+        .product-grid {
+
+          grid-template-columns: 1fr;
+        }
 
       }
 
-      showMessage(
-        "Selected: "+
-        (component.get("tagName") || "element")
-      );
-
-    }
-  );
+    `;
 
 
-  /* ADD ELEMENTS */
 
-  document
-    .querySelectorAll(".element")
-    .forEach(button=>{
+    /* =========================================
+       EDITOR
+    ========================================= */
 
-      button.addEventListener(
-        "click",
-        ()=>{
+    let editor = null;
 
-          addElement(
-            button.dataset.type
+
+
+    async function initEditor() {
+
+
+      /* ================================
+         CHECK LOGIN
+      ================================= */
+
+      const {
+        data: {
+          user
+        }
+      } =
+        await sb.auth.getUser();
+
+
+      if (!user) {
+
+        location.href =
+          "admin.html";
+
+        return;
+      }
+
+
+
+      /* ================================
+         CHECK ADMIN
+      ================================= */
+
+      const {
+        data: admin,
+        error: adminError
+      } =
+        await sb
+          .from("admin_users")
+          .select("id")
+          .eq("id", user.id)
+          .maybeSingle();
+
+
+      if (
+        adminError ||
+        !admin
+      ) {
+
+        await sb.auth.signOut();
+
+        location.href =
+          "admin.html";
+
+        return;
+      }
+
+
+
+      /* ================================
+         LOAD SAVED PAGE
+      ================================= */
+
+      let pageHTML =
+        defaultHTML;
+
+      let pageCSS =
+        defaultCSS;
+
+
+      const {
+        data: savedPage,
+        error: loadError
+      } =
+        await sb
+          .from("site_pages")
+          .select(
+            "html,css"
+          )
+          .eq(
+            "slug",
+            "home"
+          )
+          .maybeSingle();
+
+
+      if (
+        !loadError &&
+        savedPage &&
+        savedPage.html
+      ) {
+
+        pageHTML =
+          savedPage.html;
+
+        pageCSS =
+          savedPage.css ||
+          defaultCSS;
+      }
+
+
+
+      /* ================================
+         CREATE GRAPESJS
+      ================================= */
+
+      editor =
+        grapesjs.init({
+
+          container:
+            "#editor",
+
+          height:
+            "100%",
+
+          width:
+            "auto",
+
+          fromElement:
+            false,
+
+          components:
+            pageHTML,
+
+          style:
+            pageCSS,
+
+          storageManager:
+            false,
+
+
+          /* BLOCK SIDEBAR */
+
+          blockManager: {
+
+            appendTo:
+              "#blocks",
+
+            blocks: [
+
+              /* TEXT */
+
+              {
+                id: "text",
+
+                label:
+                  "📝<br>Text",
+
+                category:
+                  "Basic",
+
+                content:
+                  `<p style="padding:10px;">
+                    Write your text here
+                  </p>`
+              },
+
+
+              /* HEADING */
+
+              {
+                id: "heading",
+
+                label:
+                  "🔤<br>Heading",
+
+                category:
+                  "Basic",
+
+                content:
+                  `<h2>
+                    New Heading
+                  </h2>`
+              },
+
+
+              /* LINK */
+
+              {
+                id: "link",
+
+                label:
+                  "🔗<br>Link",
+
+                category:
+                  "Basic",
+
+                content:
+                  `<a href="#">
+                    New Link
+                  </a>`
+              },
+
+
+              /* BUTTON */
+
+              {
+                id: "button",
+
+                label:
+                  "🔘<br>Button",
+
+                category:
+                  "Basic",
+
+                content:
+                  `<a
+                    href="#"
+                    class="main-button"
+                  >
+                    New Button
+                  </a>`
+              },
+
+
+              /* IMAGE */
+
+              {
+                id: "image",
+
+                label:
+                  "🖼️<br>Image",
+
+                category:
+                  "Basic",
+
+                content:
+                  `<img
+                    src="https://placehold.co/800x450"
+                    alt="Image"
+                    style="
+                      max-width:100%;
+                      height:auto;
+                      display:block;
+                    "
+                  >`
+              },
+
+
+              /* DIVIDER */
+
+              {
+                id: "divider",
+
+                label:
+                  "➖<br>Divider",
+
+                category:
+                  "Basic",
+
+                content:
+                  `<hr style="margin:30px 0;">`
+              },
+
+
+              /* SECTION */
+
+              {
+                id: "section",
+
+                label:
+                  "📦<br>Section",
+
+                category:
+                  "Layout",
+
+                content:
+                  `
+                  <section
+                    style="
+                      padding:50px 25px;
+                    "
+                  >
+
+                    <h2>
+                      New Section
+                    </h2>
+
+                    <p>
+                      Section content goes here.
+                    </p>
+
+                  </section>
+                  `
+              },
+
+
+              /* 2 COLUMNS */
+
+              {
+                id: "columns",
+
+                label:
+                  "▥<br>2 Columns",
+
+                category:
+                  "Layout",
+
+                content:
+                  `
+                  <div
+                    style="
+                      display:grid;
+                      grid-template-columns:
+                        repeat(2,1fr);
+                      gap:20px;
+                    "
+                  >
+
+                    <div
+                      style="
+                        padding:30px;
+                        background:#f5f5f5;
+                      "
+                    >
+
+                      Column One
+
+                    </div>
+
+
+                    <div
+                      style="
+                        padding:30px;
+                        background:#f5f5f5;
+                      "
+                    >
+
+                      Column Two
+
+                    </div>
+
+                  </div>
+                  `
+              },
+
+
+              /* SPACER */
+
+              {
+                id: "spacer",
+
+                label:
+                  "↕<br>Spacer",
+
+                category:
+                  "Layout",
+
+                content:
+                  `
+                  <div
+                    style="
+                      height:100px;
+                    "
+                  ></div>
+                  `
+              },
+
+
+              /* CARD */
+
+              {
+                id: "card",
+
+                label:
+                  "🃏<br>Card",
+
+                category:
+                  "Layout",
+
+                content:
+                  `
+                  <div
+                    style="
+                      background:#fff;
+                      padding:30px;
+                      border-radius:18px;
+                      border:1px solid #eee;
+                      margin:15px 0;
+                    "
+                  >
+
+                    <h2>
+                      New Card
+                    </h2>
+
+                    <p>
+                      Card description
+                    </p>
+
+                    <a
+                      href="#"
+                      class="main-button"
+                    >
+                      Learn More
+                    </a>
+
+                  </div>
+                  `
+              },
+
+
+              /* HERO */
+
+              {
+                id: "hero",
+
+                label:
+                  "⭐<br>Hero",
+
+                category:
+                  "Layout",
+
+                content:
+                  `
+                  <section
+                    style="
+                      padding:80px 25px;
+                      text-align:center;
+                      background:#f0edff;
+                    "
+                  >
+
+                    <h1>
+                      Your Hero Title
+                    </h1>
+
+                    <p>
+                      Your hero description goes here.
+                    </p>
+
+                    <a
+                      href="#"
+                      class="main-button"
+                    >
+                      Get Started
+                    </a>
+
+                  </section>
+                  `
+              },
+
+
+              /* FEATURES */
+
+              {
+                id: "features",
+
+                label:
+                  "✨<br>Features",
+
+                category:
+                  "Layout",
+
+                content:
+                  `
+                  <section
+                    style="
+                      padding:40px 20px;
+                    "
+                  >
+
+                    <h2
+                      style="
+                        text-align:center;
+                      "
+                    >
+                      Our Features
+                    </h2>
+
+
+                    <div
+                      style="
+                        display:grid;
+                        grid-template-columns:
+                          repeat(3,1fr);
+                        gap:20px;
+                      "
+                    >
+
+                      <div
+                        style="
+                          padding:25px;
+                          background:white;
+                          border:1px solid #eee;
+                          border-radius:15px;
+                        "
+                      >
+
+                        <h3>
+                          Feature One
+                        </h3>
+
+                        <p>
+                          Description
+                        </p>
+
+                      </div>
+
+
+                      <div
+                        style="
+                          padding:25px;
+                          background:white;
+                          border:1px solid #eee;
+                          border-radius:15px;
+                        "
+                      >
+
+                        <h3>
+                          Feature Two
+                        </h3>
+
+                        <p>
+                          Description
+                        </p>
+
+                      </div>
+
+
+                      <div
+                        style="
+                          padding:25px;
+                          background:white;
+                          border:1px solid #eee;
+                          border-radius:15px;
+                        "
+                      >
+
+                        <h3>
+                          Feature Three
+                        </h3>
+
+                        <p>
+                          Description
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                  </section>
+                  `
+              },
+
+
+              /* VIDEO */
+
+              {
+                id: "video",
+
+                label:
+                  "▶️<br>Video",
+
+                category:
+                  "Media",
+
+                content:
+                  `
+                  <video
+                    controls
+                    style="
+                      width:100%;
+                      max-width:800px;
+                    "
+                  >
+                  </video>
+                  `
+              },
+
+
+              /* ICON */
+
+              {
+                id: "icon",
+
+                label:
+                  "✦<br>Icon",
+
+                category:
+                  "Media",
+
+                content:
+                  `
+                  <div
+                    style="
+                      font-size:50px;
+                      text-align:center;
+                      padding:20px;
+                    "
+                  >
+                    ⭐
+                  </div>
+                  `
+              }
+
+            ]
+          },
+
+
+          /* DEVICE */
+
+          deviceManager: {
+
+            devices: [
+
+              {
+                name:
+                  "Desktop",
+
+                width:
+                  ""
+              },
+
+              {
+                name:
+                  "Tablet",
+
+                width:
+                  "768px"
+              },
+
+              {
+                name:
+                  "Mobile",
+
+                width:
+                  "375px"
+              }
+
+            ]
+          },
+
+
+          /* TRAITS */
+
+          traitManager: {
+
+            appendTo:
+              "#traits"
+          },
+
+
+          /* STYLE */
+
+          styleManager: {
+
+            appendTo:
+              "#styles",
+
+            sectors: [
+
+              {
+
+                name:
+                  "Size",
+
+                open:
+                  true,
+
+                properties: [
+
+                  "width",
+
+                  "height",
+
+                  "min-height",
+
+                  "max-width"
+
+                ]
+              },
+
+
+              {
+
+                name:
+                  "Spacing",
+
+                open:
+                  false,
+
+                properties: [
+
+                  "margin",
+
+                  "padding"
+
+                ]
+              },
+
+
+              {
+
+                name:
+                  "Typography",
+
+                open:
+                  false,
+
+                properties: [
+
+                  "font-family",
+
+                  "font-size",
+
+                  "font-weight",
+
+                  "color",
+
+                  "text-align",
+
+                  "line-height",
+
+                  "letter-spacing"
+
+                ]
+              },
+
+
+              {
+
+                name:
+                  "Background",
+
+                open:
+                  false,
+
+                properties: [
+
+                  "background-color",
+
+                  "background-image"
+
+                ]
+              },
+
+
+              {
+
+                name:
+                  "Border",
+
+                open:
+                  false,
+
+                properties: [
+
+                  "border",
+
+                  "border-radius"
+
+                ]
+              }
+
+            ]
+          },
+
+
+          selectorManager: {
+
+            componentFirst:
+              true
+          },
+
+
+          panels: {
+
+            defaults: []
+          }
+
+        });
+
+
+
+      /* =====================================
+         AFTER LOAD
+      ===================================== */
+
+      editor.on(
+        "load",
+        () => {
+
+          showMessage(
+            "✅ Editor ready"
           );
 
         }
       );
 
-    });
 
+      /* =====================================
+         SELECT
+      ===================================== */
 
-}
+      editor.on(
+        "component:selected",
+        component => {
 
+          if (!component) {
+            return;
+          }
 
-/* ELEMENT LIBRARY */
 
-function addElement(type){
+          const tag =
+            component.get(
+              "tagName"
+            );
 
-  const components = {
 
-    text:`
-      <p>
-        Write your text here
-      </p>
-    `,
+          console.log(
+            "Selected:",
+            tag
+          );
 
-    heading:`
-      <h2>
-        New Heading
-      </h2>
-    `,
-
-    link:`
-      <a href="#">
-        New Link
-      </a>
-    `,
-
-    button:`
-      <a class="btn" href="#">
-        New Button
-      </a>
-    `,
-
-    image:`
-      <img
-        src="https://placehold.co/800x450?text=Your+Image"
-        style="max-width:100%;height:auto"
-        alt="Image"
-      >
-    `,
-
-    divider:`
-      <hr>
-    `,
-
-    section:`
-      <section style="padding:50px">
-        <h2>New Section</h2>
-        <p>Section content goes here.</p>
-      </section>
-    `,
-
-    columns:`
-      <div
-        style="
-          display:grid;
-          grid-template-columns:1fr 1fr;
-          gap:20px;
-        "
-      >
-
-        <div style="padding:25px">
-          Column One
-        </div>
-
-        <div style="padding:25px">
-          Column Two
-        </div>
-
-      </div>
-    `,
-
-    spacer:`
-      <div style="height:80px"></div>
-    `,
-
-    card:`
-      <article class="card">
-
-        <h2>
-          New Card
-        </h2>
-
-        <p>
-          Card description
-        </p>
-
-        <div class="price">
-          ৳0
-        </div>
-
-        <a class="btn" href="#">
-          Buy Now
-        </a>
-
-      </article>
-    `,
-
-    hero:`
-      <section class="hero">
-
-        <h1>
-          Your Hero Title
-        </h1>
-
-        <p>
-          Your hero subtitle
-        </p>
-
-        <a class="btn" href="#">
-          Get Started
-        </a>
-
-      </section>
-    `,
-
-    features:`
-      <section style="padding:40px">
-
-        <h2>
-          Our Features
-        </h2>
-
-        <div
-          style="
-            display:grid;
-            grid-template-columns:repeat(3,1fr);
-            gap:15px;
-          "
-        >
-
-          <div class="card">
-            <h3>Feature One</h3>
-            <p>Description</p>
-          </div>
-
-          <div class="card">
-            <h3>Feature Two</h3>
-            <p>Description</p>
-          </div>
-
-          <div class="card">
-            <h3>Feature Three</h3>
-            <p>Description</p>
-          </div>
-
-        </div>
-
-      </section>
-    `,
-
-    video:`
-      <video
-        controls
-        style="max-width:100%"
-      >
-      </video>
-    `,
-
-    icon:`
-      <div style="font-size:50px">
-        ⭐
-      </div>
-    `
-
-  };
-
-
-  editor.addComponents(
-    components[type] || components.text
-  );
-
-}
-
-
-/* IMAGE UPLOAD */
-
-const fileInput =
-  document.getElementById("imageInput");
-
-
-document
-  .getElementById("uploadBtn")
-  .onclick = ()=>{
-    fileInput.click();
-  };
-
-
-document
-  .getElementById("photoBtn")
-  .onclick = ()=>{
-    fileInput.click();
-  };
-
-
-fileInput.addEventListener(
-  "change",
-  event=>{
-
-    const file =
-      event.target.files[0];
-
-    if(!file){
-
-      return;
-
-    }
-
-
-    if(!file.type.startsWith("image/")){
-
-      alert("Please select an image.");
-
-      return;
-
-    }
-
-
-    const reader =
-      new FileReader();
-
-
-    reader.onload = function(){
-
-      const img =
-        editor.addComponents(`
-
-          <img
-            src="${reader.result}"
-            alt="Uploaded Image"
-            style="
-              max-width:100%;
-              height:auto;
-              display:block;
-              margin:20px auto;
-            "
-          >
-
-      `);
-
-
-      showMessage(
-        "Photo added successfully"
+        }
       );
 
-    };
+    }
 
 
-    reader.readAsDataURL(file);
 
-    event.target.value="";
+    /* =========================================
+       IMAGE UPLOAD
+    ========================================= */
 
-  });
+    const imageInput =
+      document.getElementById(
+        "imageInput"
+      );
 
 
-/* SAVE */
+    function openImagePicker() {
 
-document
-  .getElementById("saveBtn")
-  .onclick = async ()=>{
-
-    if(!editor){
-
-      return;
+      imageInput.click();
 
     }
 
 
-    const html =
-      editor.getHtml();
+    document
+      .getElementById(
+        "uploadTop"
+      )
+      .addEventListener(
+        "click",
+        openImagePicker
+      );
 
 
-    const css =
-      editor.getCss();
+    document
+      .getElementById(
+        "uploadSide"
+      )
+      .addEventListener(
+        "click",
+        openImagePicker
+      );
 
 
-    const {
-      error
-    } = await sb
-      .from("site_pages")
-      .upsert(
-        {
-          slug:"home",
-          html:html,
-          css:css
-        },
-        {
-          onConflict:"slug"
+    imageInput.addEventListener(
+      "change",
+      event => {
+
+        const file =
+          event.target.files[0];
+
+
+        if (!file) {
+          return;
+        }
+
+
+        if (
+          !file.type.startsWith(
+            "image/"
+          )
+        ) {
+
+          alert(
+            "Please select an image file."
+          );
+
+          return;
+        }
+
+
+        const reader =
+          new FileReader();
+
+
+        reader.onload = () => {
+
+          if (!editor) {
+
+            alert(
+              "Editor is not ready."
+            );
+
+            return;
+          }
+
+
+          const selected =
+            editor.getSelected();
+
+
+          const imageHTML = `
+
+            <img
+              src="${reader.result}"
+              alt="Uploaded Image"
+              style="
+                max-width:100%;
+                height:auto;
+                display:block;
+                margin:20px auto;
+              "
+            >
+
+          `;
+
+
+          /*
+            If a component is selected,
+            add image inside it.
+
+            Otherwise add to page.
+          */
+
+          if (
+            selected &&
+            selected.is("wrapper") === false
+          ) {
+
+            selected.append(
+              imageHTML
+            );
+
+          } else {
+
+            editor
+              .getWrapper()
+              .append(
+                imageHTML
+              );
+
+          }
+
+
+          showMessage(
+            "📷 Image added"
+          );
+
+
+          imageInput.value = "";
+
+        };
+
+
+        reader.readAsDataURL(file);
+
+      }
+    );
+
+
+
+    /* =========================================
+       SAVE
+    ========================================= */
+
+    document
+      .getElementById(
+        "saveBtn"
+      )
+      .addEventListener(
+        "click",
+        async () => {
+
+
+          if (!editor) {
+
+            showMessage(
+              "Editor not ready"
+            );
+
+            return;
+          }
+
+
+          const html =
+            editor.getHtml();
+
+
+          const css =
+            editor.getCss();
+
+
+          const {
+            error
+          } =
+            await sb
+              .from("site_pages")
+              .upsert(
+
+                {
+                  slug:
+                    "home",
+
+                  html:
+                    html,
+
+                  css:
+                    css,
+
+                  updated_at:
+                    new Date().toISOString()
+
+                },
+
+                {
+                  onConflict:
+                    "slug"
+                }
+
+              );
+
+
+          if (error) {
+
+            console.error(
+              error
+            );
+
+            showMessage(
+              "❌ Save failed"
+            );
+
+            alert(
+              error.message
+            );
+
+            return;
+          }
+
+
+          showMessage(
+            "✅ Design saved"
+          );
+
         }
       );
 
 
-    if(error){
 
-      console.error(error);
+    /* =========================================
+       PREVIEW
+    ========================================= */
 
-      showMessage(
-        "Save failed: "+
-        error.message
+    document
+      .getElementById(
+        "previewBtn"
+      )
+      .addEventListener(
+        "click",
+        () => {
+
+
+          if (!editor) {
+            return;
+          }
+
+
+          const html =
+            editor.getHtml();
+
+
+          const css =
+            editor.getCss();
+
+
+          const preview =
+            window.open(
+              "",
+              "_blank"
+            );
+
+
+          preview.document.write(`
+
+            <!DOCTYPE html>
+
+            <html>
+
+            <head>
+
+              <meta
+                name="viewport"
+                content="
+                  width=device-width,
+                  initial-scale=1
+                "
+              >
+
+              <style>
+
+                ${css}
+
+              </style>
+
+            </head>
+
+            <body>
+
+              ${html}
+
+            </body>
+
+            </html>
+
+          `);
+
+
+          preview.document.close();
+
+        }
       );
 
-      return;
-
-    }
 
 
-    showMessage(
-      "✅ Design saved successfully"
-    );
+    /* =========================================
+       LOGOUT
+    ========================================= */
 
-  };
+    document
+      .getElementById(
+        "logoutBtn"
+      )
+      .addEventListener(
+        "click",
+        async () => {
 
+          await sb.auth.signOut();
 
-/* PREVIEW */
+          location.href =
+            "admin.html";
 
-document
-  .getElementById("previewBtn")
-  .onclick = ()=>{
-
-    if(!editor){
-
-      return;
-
-    }
-
-
-    const html =
-      editor.getHtml();
-
-    const css =
-      editor.getCss();
-
-
-    const win =
-      window.open(
-        "",
-        "_blank"
+        }
       );
 
 
-    win.document.write(`
 
-      <!DOCTYPE html>
+    /* =========================================
+       START
+    ========================================= */
 
-      <html>
-
-      <head>
-
-        <meta name="viewport"
-          content="width=device-width,initial-scale=1">
-
-        <style>
-          ${css}
-        </style>
-
-      </head>
-
-      <body>
-
-        ${html}
-
-      </body>
-
-      </html>
-
-    `);
-
-    win.document.close();
-
-  };
+    initEditor();
 
 
-/* LOGOUT */
-
-document
-  .getElementById("logoutBtn")
-  .onclick = async ()=>{
-
-    await sb.auth.signOut();
-
-    location.href="admin.html";
-
-  };
-
-
-/* START */
-
-startEditor();
-
-</script>
+  </script>
 
 </body>
 </html>
