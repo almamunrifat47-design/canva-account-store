@@ -1,1 +1,0 @@
-// Supabase public configuration\nwindow.SUPABASE_URL = "https://fxvidvfebfepcqiximek.supabase.co";\nwindow.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4dmlkdmZlYmZlcGNxaXhpbWVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxMzMwMDIsImV4cCI6MjEwMjcwOTAwMn0.MFlH7VdOXZ-BlEHHuRsGWHT6wKRqM9ERQCZ1w2BB5LU";\n
