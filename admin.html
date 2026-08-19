@@ -1,0 +1,63 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Dashboard</title><link rel="stylesheet" href="styles.css"></head><body><div id="loginView" class="container"><div class="form"><h1>Admin Login</h1><div id="loginMsg"></div><form id="login"><div class="field"><label>Email</label><input id="aemail" type="email" required></div><div class="field"><label>Password</label><input id="apass" type="password" required></div><button class="btn">Login</button></form></div></div>
+<div id="dash" class="admin hidden"><aside class="side"><h2>Admin</h2><a href="#dashboard">Dashboard</a><a href="#orders">Orders</a><a href="#products">Products</a><button class="btn secondary" id="logout">Logout</button></aside><main class="main"><h1>Dashboard</h1><div class="stats"><div class="stat"><small>Total</small><h2 id="total">0</h2></div><div class="stat"><small>Pending</small><h2 id="pending">0</h2></div><div class="stat"><small>Completed</small><h2 id="completed">0</h2></div><div class="stat"><small>Cancelled</small><h2 id="cancelled">0</h2></div></div><div class="tablewrap"><table class="table"><thead><tr><th>Order</th><th>Customer</th><th>Phone</th><th>Product</th><th>TX ID</th><th>Status</th><th>Action</th></tr></thead><tbody id="rows"></tbody></table></div>
+<section id="sidebarManager" class="form" style="margin-top:24px;">
+  <h2>Sidebar Manager</h2>
+  <p>Add buttons/links that appear on the public website.</p>
+  <form id="sidebarForm">
+    <input type="hidden" id="sidebarId">
+    <div class="field"><label>Icon</label><input id="sideIcon" placeholder="🛍️" value="🔗"></div>
+    <div class="field"><label>Title</label><input id="sideTitle" placeholder="Canva Pro" required></div>
+    <div class="field"><label>Link</label><input id="sideUrl" placeholder="order.html?product=canva-pro" required></div>
+    <div class="field"><label>Order</label><input id="sideOrder" type="number" value="0"></div>
+    <button class="btn" type="submit">Save Sidebar Item</button>
+    <button class="btn secondary" type="button" id="sideCancel" style="display:none">Cancel</button>
+  </form>
+  <div class="tablewrap" style="margin-top:15px;">
+    <table class="table">
+      <thead><tr><th>Icon</th><th>Title</th><th>Link</th><th>Active</th><th>Action</th></tr></thead>
+      <tbody id="sidebarRows"></tbody>
+    </table>
+  </div>
+</section>
+</main></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script>
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);let orders=[];
+async function verify(){const {data:{user}}=await sb.auth.getUser();if(!user){loginView.classList.remove('hidden');dash.classList.add('hidden');return}const {data:adm}=await sb.from('admin_users').select('id').eq('id',user.id).maybeSingle();if(!adm){await sb.auth.signOut();loginMsg.innerHTML='<div class="notice">Not authorized.</div>';return}loginView.classList.add('hidden');dash.classList.remove('hidden');loadOrders()}
+async function loadOrders(){const {data,error}=await sb.from('orders').select('*,products(name)').order('created_at',{ascending:false});if(error){rows.innerHTML='<tr><td colspan="7">Could not load orders.</td></tr>';return}orders=data||[];total.textContent=orders.length;pending.textContent=orders.filter(x=>x.status==='Pending').length;completed.textContent=orders.filter(x=>x.status==='Completed').length;cancelled.textContent=orders.filter(x=>x.status==='Cancelled').length;rows.innerHTML=orders.map(o=>`<tr><td>${o.order_number}</td><td>${o.customer_name}</td><td>${o.customer_phone}</td><td>${o.products?.name||'—'}</td><td>${o.transaction_id}</td><td><span class="badge">${o.status}</span></td><td><select onchange="changeStatus('${o.id}',this.value)"><option ${o.status==='Pending'?'selected':''}>Pending</option><option ${o.status==='Confirmed'?'selected':''}>Confirmed</option><option ${o.status==='Completed'?'selected':''}>Completed</option><option ${o.status==='Cancelled'?'selected':''}>Cancelled</option></select></td></tr>`).join('')}
+async function changeStatus(id,status){await sb.from('orders').update({status,updated_at:new Date().toISOString()}).eq('id',id);loadOrders()}
+login.addEventListener('submit',async e=>{e.preventDefault();const {error}=await sb.auth.signInWithPassword({email:aemail.value,password:apass.value});if(error){loginMsg.innerHTML='<div class="notice">'+error.message+'</div>';return}verify()});logout.addEventListener('click',async()=>{await sb.auth.signOut();location.reload()});verify();
+
+async function loadSidebarAdmin(){
+  const {data,error}=await sb.from('sidebar_items').select('*').order('sort_order').order('created_at');
+  if(error){sidebarRows.innerHTML='<tr><td colspan="5">Could not load sidebar items. Run the sidebar SQL first.</td></tr>';return}
+  sidebarRows.innerHTML=(data||[]).map(x=>`<tr>
+    <td>${x.icon||'🔗'}</td>
+    <td>${x.title}</td>
+    <td>${x.url}</td>
+    <td><input type="checkbox" ${x.is_active?'checked':''} onchange="toggleSidebar('${x.id}',this.checked)"></td>
+    <td><button class="btn secondary" onclick="editSidebar('${x.id}')">Edit</button> <button class="btn secondary" onclick="deleteSidebar('${x.id}')">Delete</button></td>
+  </tr>`).join('');
+}
+async function toggleSidebar(id,active){await sb.from('sidebar_items').update({is_active:active}).eq('id',id);loadSidebarAdmin()}
+async function editSidebar(id){
+  const {data}=await sb.from('sidebar_items').select('*').eq('id',id).single();
+  if(!data)return;
+  sidebarId.value=data.id;sideIcon.value=data.icon||'🔗';sideTitle.value=data.title;sideUrl.value=data.url;sideOrder.value=data.sort_order||0;sideCancel.style.display='inline-block';
+}
+async function deleteSidebar(id){
+  if(!confirm('Delete this sidebar item?'))return;
+  await sb.from('sidebar_items').delete().eq('id',id);loadSidebarAdmin();
+}
+sidebarForm.addEventListener('submit',async e=>{
+  e.preventDefault();
+  const payload={icon:sideIcon.value||'🔗',title:sideTitle.value.trim(),url:sideUrl.value.trim(),sort_order:Number(sideOrder.value)||0,is_active:true};
+  let q;
+  if(sidebarId.value) q=await sb.from('sidebar_items').update(payload).eq('id',sidebarId.value);
+  else q=await sb.from('sidebar_items').insert(payload);
+  if(q.error){alert(q.error.message);return}
+  sidebarForm.reset();sideIcon.value='🔗';sideOrder.value='0';sidebarId.value='';sideCancel.style.display='none';loadSidebarAdmin();
+});
+sideCancel.addEventListener('click',()=>{sidebarForm.reset();sideIcon.value='🔗';sideOrder.value='0';sidebarId.value='';sideCancel.style.display='none'});
+
+loadSidebarAdmin();
+</script></body></html>
