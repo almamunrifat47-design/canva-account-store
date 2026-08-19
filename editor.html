@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Visual Editor</title>
+<link rel="stylesheet" href="https://unpkg.com/grapesjs@0.22.10/dist/css/grapes.min.css">
+
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Arial,sans-serif;background:#111}
+.topbar{height:62px;background:#17151f;color:#fff;display:flex;align-items:center;gap:10px;padding:0 14px;position:fixed;inset:0 0 auto;z-index:9999}
+.logo{font-size:19px;font-weight:800;margin-right:auto}
+.top-btn{border:0;border-radius:9px;padding:10px 15px;font-weight:700;cursor:pointer}
+.preview{background:#fff;color:#111}.save{background:#6c4df6;color:#fff}.upload{background:#168c76;color:#fff}.logout{background:#fff;color:#111}
+.workspace{position:fixed;top:62px;left:0;right:0;bottom:0;display:grid;grid-template-columns:235px minmax(0,1fr) 280px}
+.left{background:#17151f;color:#fff;border-right:1px solid #302c3a;overflow:auto;padding:12px}
+.left h3{margin:5px 0 4px;font-size:16px}.hint{color:#999;font-size:11px;margin-bottom:14px}
+.cat{color:#a98cff;font-size:11px;font-weight:800;margin:16px 0 8px;text-transform:uppercase}
+.blocks{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.block{background:#24212d;border:1px solid #3a3545;color:#fff;border-radius:8px;min-height:68px;padding:10px 5px;cursor:pointer;text-align:center;font-size:12px;user-select:none}
+.block:hover{background:#332e40;border-color:#8065ff}
+.block:active{transform:scale(.97)}
+.uploadwide{width:100%;margin-top:15px;padding:11px;border:0;border-radius:8px;background:#6c4df6;color:#fff;font-weight:700;cursor:pointer}
+.canvas{background:#e7e7ec;min-width:0;overflow:hidden}
+#editor{height:100%}
+.right{background:#17151f;color:#fff;border-left:1px solid #302c3a;overflow:auto}
+.right-title{padding:15px;border-bottom:1px solid #302c3a;font-weight:800}
+#traits,#styles{padding:10px}
+.gjs-pn-panels{display:none!important}
+.gjs-one-bg{background:#17151f}.gjs-two-color{color:#ddd}.gjs-three-bg{background:#24212d}.gjs-four-color{color:#a98cff}
+.gjs-sm-sector{border-color:#35313f!important}.gjs-sm-sector-title{background:#211e29!important;color:#fff!important}
+.gjs-field{background:#24212d!important;border-color:#403b4d!important;color:#fff!important}
+.gjs-field input,.gjs-field select{color:#fff!important}
+#msg{position:fixed;top:75px;left:50%;transform:translateX(-50%);background:#fff;color:#111;padding:11px 18px;border-radius:9px;box-shadow:0 10px 35px #0004;z-index:20000;display:none;font-weight:700}
+@media(max-width:850px){.workspace{grid-template-columns:170px minmax(0,1fr)}.right{display:none}.top-btn{padding:8px 10px;font-size:12px}}
+@media(max-width:600px){.workspace{grid-template-columns:125px minmax(0,1fr)}.blocks{grid-template-columns:1fr}.logo{font-size:14px}.upload{display:none}}\n.gjs-cv-canvas img{max-width:100%}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo">🎨 Visual Editor</div>
+  <button class="top-btn upload" id="topUpload">📷 Add Photo</button>
+  <button class="top-btn preview" id="preview">Preview</button>
+  <button class="top-btn save" id="save">💾 Save Changes</button>
+  <button class="top-btn logout" id="logout">Logout</button>
+</header>
+
+<div class="workspace">
+
+<aside class="left">
+  <h3>➕ Add Elements</h3>
+  <div class="hint">Click any item to add it. Drag & drop is also supported.</div>
+
+  <div class="cat">Basic</div>
+  <div class="blocks">
+    <button class="block" data-type="text">📝<br>Text</button>
+    <button class="block" data-type="heading">🔤<br>Heading</button>
+    <button class="block" data-type="subheading">T<br>Subheading</button>
+    <button class="block" data-type="link">🔗<br>Link</button>
+    <button class="block" data-type="button">🔘<br>Button</button>
+    <button class="block" data-type="icon">⭐<br>Icon</button>
+    <button class="block" data-type="divider">➖<br>Divider</button>
+    <button class="block" data-type="spacer">↕<br>Spacer</button>
+  </div>
+
+  <div class="cat">Layout</div>
+  <div class="blocks">
+    <button class="block" data-type="section">📦<br>Section</button>
+    <button class="block" data-type="container">▣<br>Container</button>
+    <button class="block" data-type="columns">▥<br>2 Columns</button>
+    <button class="block" data-type="threecolumns">▦<br>3 Columns</button>
+    <button class="block" data-type="card">🃏<br>Card</button>
+    <button class="block" data-type="glasscard">🔮<br>Glass Card</button>
+    <button class="block" data-type="hero">⭐<br>Hero</button>
+    <button class="block" data-type="banner">🖼️<br>Banner</button>
+  </div>
+
+  <div class="cat">Store / Product</div>
+  <div class="blocks">
+    <button class="block" data-type="productcard">🛍️<br>Product</button>
+    <button class="block" data-type="productgrid">🛒<br>Product Grid</button>
+    <button class="block" data-type="pricecard">💳<br>Price Card</button>
+    <button class="block" data-type="offer">🏷️<br>Offer</button>
+    <button class="block" data-type="cta">🎯<br>CTA</button>
+    <button class="block" data-type="trust">🛡️<br>Trust Box</button>
+  </div>
+
+  <div class="cat">Content</div>
+  <div class="blocks">
+    <button class="block" data-type="features">✨<br>Features</button>
+    <button class="block" data-type="testimonial">💬<br>Review</button>
+    <button class="block" data-type="faq">❓<br>FAQ</button>
+    <button class="block" data-type="steps">1-2-3<br>Steps</button>
+    <button class="block" data-type="stats">📊<br>Stats</button>
+    <button class="block" data-type="notice">📢<br>Notice</button>
+    <button class="block" data-type="quote">❝<br>Quote</button>
+    <button class="block" data-type="list">☷<br>List</button>
+  </div>
+
+  <div class="cat">Navigation</div>
+  <div class="blocks">
+    <button class="block" data-type="navbar">🧭<br>Navbar</button>
+    <button class="block" data-type="tabs">▤<br>Tabs</button>
+    <button class="block" data-type="breadcrumb">›<br>Breadcrumb</button>
+    <button class="block" data-type="social">🔗<br>Social Links</button>
+  </div>
+
+  <div class="cat">Media</div>
+  <div class="blocks">
+    <button class="block" data-type="image">🖼️<br>Image</button>
+    <button class="block" data-type="gallery">🌄<br>Gallery</button>
+    <button class="block" data-type="video">▶️<br>Video</button>
+    <button class="block" data-type="map">📍<br>Map</button>
+  </div>
+
+  <div class="cat">Forms</div>
+  <div class="blocks">
+    <button class="block" data-type="contact">📩<br>Contact</button>
+    <button class="block" data-type="newsletter">✉️<br>Newsletter</button>
+    <button class="block" data-type="search">🔎<br>Search</button>
+  </div>
+
+  <div class="cat">Footer</div>
+  <div class="blocks">
+    <button class="block" data-type="footer">🦶<br>Footer</button>
+    <button class="block" data-type="copyright">©️<br>Copyright</button>
+  </div>
+
+  <button class="uploadwide" id="sideUpload">📁 Upload Image</button>
+  <input id="file" type="file" accept="image/*" hidden>
+</aside>
+
+<main class="canvas"><div id="editor"></div></main>
+
+<aside class="right">
+  <div class="right-title">⚙️ Element Settings</div>
+  <div id="traits"></div>
+  <div class="right-title">🎨 Style</div>
+  <div id="styles"></div>
+</aside>
+
+</div>
+
+<div id="msg"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="https://unpkg.com/grapesjs@0.22.10/dist/grapes.min.js"></script>
+
+<script>
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let editor = null;
+
+function toast(text){
+  const m=document.getElementById('msg');
+  m.textContent=text;
+  m.style.display='block';
+  clearTimeout(window.__toast);
+  window.__toast=setTimeout(()=>m.style.display='none',2200);
+}
+
+const DEFAULT_HTML = `
+<nav class="site-nav">
+  <a class="site-logo" href="index.html">Canva Account Store</a>
+  <div class="nav-links">
+    <a href="#products">Products</a>
+    <a href="order-status.html">Order Status</a>
+    <a class="main-button" href="order.html">Buy Now</a>
+  </div>
+</nav>
+<section class="hero-section">
+  <h1>Choose Your Canva Account</h1>
+  <p>Simple ordering for Canva Pro and Owner accounts.</p>
+</section>
+<section id="products" class="products-section">
+  <div class="product-grid">
+    <div class="product-card">
+      <h2>Canva Pro Account</h2>
+      <p>Premium Canva account.</p>
+      <div class="price">৳500</div>
+      <ul><li>Premium features</li><li>Easy ordering</li><li>Fast delivery</li></ul>
+      <a class="main-button" href="order.html?product=canva-pro">Buy Now</a>
+    </div>
+    <div class="product-card">
+      <h2>Canva Owner Account</h2>
+      <p>Canva owner account.</p>
+      <div class="price">৳1500</div>
+      <ul><li>Owner access</li><li>Easy ordering</li><li>Fast delivery</li></ul>
+      <a class="main-button" href="order.html?product=canva-owner">Buy Now</a>
+    </div>
+  </div>
+</section>`;
+
+const DEFAULT_CSS = `
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f7f7fb;color:#17151f}
+a{text-decoration:none;color:inherit}
+.site-nav{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 6%;background:#fff;border-bottom:1px solid #eee}
+.site-logo{font-size:21px;font-weight:800}
+.nav-links{display:flex;align-items:center;gap:22px}
+.main-button{display:inline-flex;align-items:center;justify-content:center;padding:12px 19px;border-radius:10px;background:#6c4df6;color:#fff;font-weight:700}
+.hero-section{text-align:center;padding:85px 20px}
+.hero-section h1{margin:0 0 15px;font-size:48px;line-height:1.1}
+.hero-section p{margin:0;color:#666;font-size:18px}
+.products-section{max-width:1100px;margin:auto;padding:40px 20px 80px}
+.product-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:25px}
+.product-card{background:#fff;border:1px solid #e8e8ee;border-radius:18px;padding:30px;box-shadow:0 10px 35px #0000000f}
+.price{font-size:32px;font-weight:800;margin:20px 0}
+.product-card li{margin:8px 0}
+@media(max-width:700px){.site-nav{flex-direction:column;align-items:flex-start}.nav-links{width:100%;flex-wrap:wrap;gap:10px}.hero-section{padding:55px 18px}.hero-section h1{font-size:34px}.product-grid{grid-template-columns:1fr}}`;
+
+const ELEMENTS = {
+  text:`<p style="padding:10px;font-size:16px;">Write your text here</p>`,
+  heading:`<h2 style="padding:10px;">New Heading</h2>`,
+  subheading:`<h3 style="padding:10px;color:#666;">New Subheading</h3>`,
+  link:`<a href="#" style="display:inline-block;padding:10px;color:#6c4df6;text-decoration:underline;">New Link</a>`,
+  button:`<a href="#" class="main-button">New Button</a>`,
+  icon:`<div style="font-size:48px;text-align:center;padding:20px;">⭐</div>`,
+  divider:`<hr style="margin:30px 0;border:0;border-top:1px solid #ddd;">`,
+  spacer:`<div style="height:100px;"></div>`,
+
+  section:`<section style="padding:55px 25px;"><h2>New Section</h2><p>Section content goes here.</p></section>`,
+  container:`<div style="max-width:1100px;margin:auto;padding:35px 20px;"><h2>Container</h2><p>Content goes here.</p></div>`,
+  columns:`<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:20px;"><div style="padding:30px;background:#f5f5f5;border-radius:12px;"><h3>Column One</h3><p>Content</p></div><div style="padding:30px;background:#f5f5f5;border-radius:12px;"><h3>Column Two</h3><p>Content</p></div></div>`,
+  threecolumns:`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:20px;"><div class="product-card"><h3>One</h3><p>Content</p></div><div class="product-card"><h3>Two</h3><p>Content</p></div><div class="product-card"><h3>Three</h3><p>Content</p></div></div>`,
+  card:`<div style="background:#fff;padding:30px;border-radius:18px;border:1px solid #eee;margin:15px 0;"><h2>New Card</h2><p>Card description goes here.</p><a href="#" class="main-button">Learn More</a></div>`,
+  glasscard:`<div style="padding:30px;border-radius:20px;background:rgba(255,255,255,.65);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.7);box-shadow:0 12px 40px #0001;margin:15px 0;"><h2>Glass Card</h2><p>Beautiful glass-style content card.</p></div>`,
+  hero:`<section style="padding:85px 25px;text-align:center;background:linear-gradient(135deg,#f0edff,#fff);"><h1 style="font-size:46px;">Your Hero Title</h1><p style="font-size:19px;color:#666;">Your hero description goes here.</p><a href="#" class="main-button">Get Started</a></section>`,
+  banner:`<section style="padding:45px 25px;text-align:center;background:#17151f;color:#fff;border-radius:16px;margin:20px;"><h2>Special Announcement</h2><p>Your banner text goes here.</p><a href="#" class="main-button">Shop Now</a></section>`,
+
+  productcard:`<div class="product-card"><div style="height:180px;background:#eee;border-radius:12px;margin-bottom:20px;"></div><h2>Product Name</h2><p>Product description.</p><div class="price">৳500</div><a href="order.html" class="main-button">Buy Now</a></div>`,
+  productgrid:`<section style="padding:30px 20px;"><h2 style="text-align:center;">Our Products</h2><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;"><div class="product-card"><h3>Canva Pro</h3><div class="price">৳500</div><a href="order.html?product=canva-pro" class="main-button">Buy Now</a></div><div class="product-card"><h3>Owner Account</h3><div class="price">৳1500</div><a href="order.html?product=canva-owner" class="main-button">Buy Now</a></div><div class="product-card"><h3>Custom Product</h3><div class="price">৳999</div><a href="order.html" class="main-button">Buy Now</a></div></div></section>`,
+  pricecard:`<div class="product-card" style="text-align:center;max-width:380px;"><h2>Premium Plan</h2><div class="price">৳999</div><p>Everything you need.</p><ul style="text-align:left;"><li>Premium features</li><li>Fast delivery</li><li>Support</li></ul><a href="order.html" class="main-button">Choose Plan</a></div>`,
+  offer:`<div style="padding:25px;text-align:center;background:#fff4d6;border:2px dashed #f0b429;border-radius:15px;margin:20px;"><strong style="font-size:24px;">🔥 Special Offer</strong><p>Limited-time discount available!</p><a href="order.html" class="main-button">Claim Offer</a></div>`,
+  cta:`<section style="padding:60px 25px;text-align:center;background:#6c4df6;color:#fff;border-radius:20px;margin:20px;"><h2>Ready to Get Started?</h2><p>Place your order today.</p><a href="order.html" style="display:inline-block;background:#fff;color:#17151f;padding:13px 22px;border-radius:10px;font-weight:700;">Buy Now</a></section>`,
+  trust:`<div style="padding:25px;background:#effcf5;border:1px solid #b7ead0;border-radius:15px;margin:20px;"><h3>🛡️ Safe & Trusted</h3><p>Secure ordering • Fast response • Customer support</p></div>`,
+
+  features:`<section style="padding:45px 20px;"><h2 style="text-align:center;">Why Choose Us?</h2><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;"><div class="product-card"><div style="font-size:30px;">⚡</div><h3>Fast Delivery</h3><p>Quick service.</p></div><div class="product-card"><div style="font-size:30px;">🔒</div><h3>Reliable</h3><p>Trusted service.</p></div><div class="product-card"><div style="font-size:30px;">💬</div><h3>Support</h3><p>We are here to help.</p></div></div></section>`,
+  testimonial:`<div style="padding:30px;background:#fff;border:1px solid #eee;border-radius:18px;text-align:center;margin:20px;"><div style="font-size:38px;">❝</div><p style="font-size:18px;">Amazing service! Very fast and helpful.</p><strong>— Customer Name</strong><div style="margin-top:10px;">★★★★★</div></div>`,
+  faq:`<section style="padding:35px 20px;"><h2>Frequently Asked Questions</h2><details open style="padding:15px 0;border-bottom:1px solid #ddd;"><summary><strong>How do I order?</strong></summary><p>Choose a product and complete the order form.</p></details><details style="padding:15px 0;border-bottom:1px solid #ddd;"><summary><strong>How fast is delivery?</strong></summary><p>We will contact you after receiving the order.</p></details><details style="padding:15px 0;"><summary><strong>Do you provide support?</strong></summary><p>Yes, customer support is available.</p></details></section>`,
+  steps:`<section style="padding:40px 20px;"><h2 style="text-align:center;">How It Works</h2><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;text-align:center;"><div class="product-card"><b style="font-size:35px;">1</b><h3>Choose</h3><p>Select your product.</p></div><div class="product-card"><b style="font-size:35px;">2</b><h3>Order</h3><p>Submit your details.</p></div><div class="product-card"><b style="font-size:35px;">3</b><h3>Receive</h3><p>Get your product.</p></div></div></section>`,
+  stats:`<section style="padding:40px 20px;"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:15px;text-align:center;"><div class="product-card"><h2>500+</h2><p>Customers</p></div><div class="product-card"><h2>99%</h2><p>Satisfaction</p></div><div class="product-card"><h2>24/7</h2><p>Support</p></div><div class="product-card"><h2>Fast</h2><p>Delivery</p></div></div></section>`,
+  notice:`<div style="padding:15px 20px;background:#eef3ff;border-left:5px solid #6c4df6;margin:20px;"><strong>📢 Notice:</strong> Write your important announcement here.</div>`,
+  quote:`<blockquote style="margin:25px 0;padding:25px 30px;border-left:5px solid #6c4df6;background:#f7f5ff;font-size:20px;">“Your important quote goes here.”<footer style="font-size:14px;margin-top:12px;">— Author</footer></blockquote>`,
+  list:`<div style="padding:20px;"><h3>Important Points</h3><ul><li>First point</li><li>Second point</li><li>Third point</li><li>Fourth point</li></ul></div>`,
+
+  navbar:`<nav style="display:flex;align-items:center;justify-content:space-between;padding:18px 25px;background:#fff;border-bottom:1px solid #eee;"><strong style="font-size:20px;">Your Brand</strong><div style="display:flex;gap:18px;"><a href="#">Home</a><a href="#products">Products</a><a href="order-status.html">Status</a><a href="order.html" class="main-button">Buy Now</a></div></nav>`,
+  tabs:`<div style="padding:25px;"><div style="display:flex;gap:5px;border-bottom:1px solid #ddd;"><button style="padding:12px 18px;border:0;background:#6c4df6;color:#fff;border-radius:8px 8px 0 0;">Tab 1</button><button style="padding:12px 18px;border:0;background:#eee;">Tab 2</button><button style="padding:12px 18px;border:0;background:#eee;">Tab 3</button></div><div style="padding:20px;">Tab content goes here.</div></div>`,
+  breadcrumb:`<div style="padding:15px 20px;color:#666;"><a href="#">Home</a> / <a href="#">Products</a> / <strong>Current Page</strong></div>`,
+  social:`<div style="display:flex;gap:10px;padding:20px;justify-content:center;"><a href="#" style="padding:10px 14px;border-radius:8px;background:#eee;">Facebook</a><a href="#" style="padding:10px 14px;border-radius:8px;background:#eee;">Instagram</a><a href="#" style="padding:10px 14px;border-radius:8px;background:#eee;">WhatsApp</a></div>`,
+
+  image:`<img src="https://placehold.co/900x500?text=Your+Image" alt="Image" style="max-width:100%;height:auto;display:block;margin:20px auto;border-radius:12px;">`,
+  gallery:`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:20px;"><img src="https://placehold.co/500x350?text=Photo+1" style="width:100%;border-radius:12px;"><img src="https://placehold.co/500x350?text=Photo+2" style="width:100%;border-radius:12px;"><img src="https://placehold.co/500x350?text=Photo+3" style="width:100%;border-radius:12px;"></div>`,
+  video:`<div style="padding:20px;"><video controls style="width:100%;max-width:900px;display:block;margin:auto;"></video></div>`,
+  map:`<div style="padding:20px;text-align:center;"><iframe src="https://www.google.com/maps?q=Bangladesh&output=embed" style="width:100%;height:300px;border:0;border-radius:14px;"></iframe></div>`,
+
+  contact:`<section style="max-width:700px;margin:auto;padding:35px 20px;"><h2>Contact Us</h2><form><input placeholder="Your Name" style="width:100%;padding:13px;margin:7px 0;border:1px solid #ddd;border-radius:8px;"><input placeholder="Email" style="width:100%;padding:13px;margin:7px 0;border:1px solid #ddd;border-radius:8px;"><input placeholder="Phone / WhatsApp" style="width:100%;padding:13px;margin:7px 0;border:1px solid #ddd;border-radius:8px;"><textarea placeholder="Your Message" rows="5" style="width:100%;padding:13px;margin:7px 0;border:1px solid #ddd;border-radius:8px;"></textarea><button class="main-button" type="button">Send Message</button></form></section>`,
+  newsletter:`<section style="padding:45px 20px;text-align:center;background:#f3f1ff;"><h2>Stay Updated</h2><p>Subscribe for new offers.</p><div><input placeholder="Your email" style="padding:13px;width:260px;border:1px solid #ddd;border-radius:8px;"><button class="main-button" style="border:0;margin-left:5px;">Subscribe</button></div></section>`,
+  search:`<div style="padding:25px;text-align:center;"><input placeholder="Search..." style="width:80%;max-width:600px;padding:14px;border:1px solid #ddd;border-radius:10px;"><button class="main-button" style="border:0;margin-left:5px;">🔎</button></div>`,
+
+  footer:`<footer style="padding:50px 25px;background:#17151f;color:#fff;"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:30px;max-width:1100px;margin:auto;"><div><h3>Your Brand</h3><p>Your short description.</p></div><div><h3>Quick Links</h3><p><a href="#">Home</a></p><p><a href="#products">Products</a></p><p><a href="order-status.html">Order Status</a></p></div><div><h3>Contact</h3><p>WhatsApp: 01XXXXXXXXX</p><p>Email: your@email.com</p></div></div></footer>`,
+  copyright:`<div style="padding:18px;text-align:center;background:#111;color:#aaa;font-size:14px;">© 2026 Your Brand. All rights reserved.</div>`
+};
+
+async function init(){
+  const {data:{user}}=await sb.auth.getUser();
+  if(!user){location.href='admin.html';return;}
+
+  const {data:admin,error:ae}=await sb.from('admin_users').select('id').eq('id',user.id).maybeSingle();
+  if(ae || !admin){await sb.auth.signOut();location.href='admin.html';return;}
+
+  let html=DEFAULT_HTML, css=DEFAULT_CSS;
+  const {data:saved,error:se}=await sb.from('site_pages').select('html,css').eq('slug','home').maybeSingle();
+  if(!se && saved && saved.html){html=saved.html;css=saved.css||DEFAULT_CSS;}
+
+  editor=grapesjs.init({
+    container:'#editor',
+    height:'100%',
+    fromElement:false,
+    components:html,
+    style:css,
+    storageManager:false,
+    blockManager:{appendTo:'#blocks',blocks:[]},
+    traitManager:{appendTo:'#traits'},
+    styleManager:{
+      appendTo:'#styles',
+      sectors:[
+        {name:'Dimension',open:true,properties:['width','height','min-height','max-width']},
+        {name:'Spacing',open:false,properties:['margin','padding']},
+        {name:'Typography',open:false,properties:['font-family','font-size','font-weight','color','text-align','line-height','letter-spacing']},
+        {name:'Background',open:false,properties:['background-color','background-image']},
+        {name:'Border',open:false,properties:['border','border-radius']}
+      ]
+    },
+    deviceManager:{devices:[
+      {name:'Desktop',width:''},
+      {name:'Tablet',width:'768px'},
+      {name:'Mobile',width:'375px'}
+    ]},
+    selectorManager:{componentFirst:true},
+    panels:{defaults:[]}
+  });
+
+  /* IMPORTANT: custom sidebar buttons */
+  document.querySelectorAll('.block').forEach(btn=>{
+    btn.draggable=true;
+
+    btn.addEventListener('click',e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      addElement(btn.dataset.type);
+    });
+
+    btn.addEventListener('dragstart',e=>{
+      e.dataTransfer.setData('text/plain',btn.dataset.type);
+      e.dataTransfer.effectAllowed='copy';
+    });
+  });
+
+  /* Native drop anywhere in the editor canvas */
+  editor.on('canvas:drop',({target})=>{
+    /* GrapesJS handles native component drops itself.
+       This event is intentionally left enabled. */
+  });
+
+  toast('✅ Editor ready');
+}
+
+function addElement(type){
+  if(!editor){toast('Editor is not ready');return;}
+  const html=ELEMENTS[type];
+  if(!html)return;
+
+  const selected=editor.getSelected();
+
+  if(selected && !selected.is('wrapper')){
+    selected.append(html);
+  }else{
+    editor.getWrapper().append(html);
+  }
+
+  toast('✅ '+type+' added');
+}
+
+async function uploadImage(){
+  document.getElementById('file').click();
+}
+
+document.getElementById('topUpload').onclick=uploadImage;
+document.getElementById('sideUpload').onclick=uploadImage;
+
+document.getElementById('file').addEventListener('change',e=>{
+  const file=e.target.files[0];
+  if(!file)return;
+  if(!file.type.startsWith('image/')){alert('Please select an image.');return;}
+
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const img=`<img src="${reader.result}" alt="Uploaded Image" style="max-width:100%;height:auto;display:block;margin:20px auto;">`;
+    const selected=editor.getSelected();
+    if(selected && !selected.is('wrapper')) selected.append(img);
+    else editor.getWrapper().append(img);
+    toast('📷 Image added');
+    e.target.value='';
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('save').onclick=async()=>{
+  if(!editor)return;
+
+  const {error}=await sb.from('site_pages').upsert({
+    slug:'home',
+    html:editor.getHtml(),
+    css:editor.getCss(),
+    updated_at:new Date().toISOString()
+  },{onConflict:'slug'});
+
+  if(error){
+    console.error(error);
+    alert(error.message);
+    toast('❌ Save failed');
+    return;
+  }
+  toast('✅ Design saved');
+};
+
+document.getElementById('preview').onclick=()=>{
+  if(!editor)return;
+  const w=window.open('','_blank');
+  w.document.write(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>${editor.getCss()}</style></head><body>${editor.getHtml()}</body></html>`);
+  w.document.close();
+};
+
+document.getElementById('logout').onclick=async()=>{
+  await sb.auth.signOut();
+  location.href='admin.html';
+};
+
+init();
+</script>
+</body>
+</html>
