@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Visual Editor</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="https://unpkg.com/grapesjs@0.22.8/dist/css/grapes.min.css">
+<style>
+body{background:#eef0f4}.editor-shell{height:100vh;display:flex;flex-direction:column}
+.editor-top{height:58px;background:#17151f;color:#fff;display:flex;align-items:center;gap:10px;padding:8px 14px;z-index:5}
+.editor-top .brand{font-weight:800;margin-right:auto}.editor-top button{border:0;border-radius:8px;padding:9px 13px;cursor:pointer;font-weight:700}
+#saveBtn{background:#6c4df6;color:#fff}.previewBtn{background:#fff;color:#17151f}
+#editor{flex:1;min-height:0}
+.gjs-one-bg{background-color:#17151f}.gjs-two-color{color:#eee}.gjs-three-bg{background-color:#2a2633}.gjs-four-color,.gjs-four-color-h:hover{color:#b7aaff}
+.status{font-size:13px;opacity:.85;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:600px){.editor-top .brand{font-size:14px}.editor-top{gap:6px;padding:7px}.editor-top button{padding:8px 9px;font-size:12px}.status{max-width:100px}}
+</style>
+</head>
+<body>
+<div class="editor-shell">
+  <div class="editor-top">
+    <div class="brand">🎨 Visual Editor</div>
+    <div id="status" class="status">Checking admin...</div>
+    <button class="previewBtn" id="previewBtn">Preview</button>
+    <button id="saveBtn">Save Changes</button>
+    <button class="previewBtn" id="logoutBtn">Logout</button>
+  </div>
+  <div id="editor"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="https://unpkg.com/grapesjs@0.22.8/dist/grapes.min.js"></script>
+<script>
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+let editor;
+
+const baseHTML = `
+<nav class="nav">
+  <a class="logo" href="index.html">Canva Account Store</a>
+  <div class="navlinks">
+    <a href="#products">Products</a>
+    <a href="order-status.html">Order Status</a>
+    <a class="btn" href="order.html">Buy Now</a>
+  </div>
+</nav>
+<section class="hero">
+  <h1>Choose Your Canva Account</h1>
+  <p>Simple ordering for Canva Pro and Owner accounts.</p>
+</section>
+<main class="container">
+  <div id="productsGrid" class="cards">
+    <article class="card" data-editor-locked="true">
+      <h2>Canva Pro Account</h2><p>Premium Canva account.</p>
+      <div class="price">৳500</div>
+      <ul class="features"><li>Premium features</li><li>Easy ordering</li><li>Fast delivery</li></ul>
+      <a class="btn" href="order.html?product=canva-pro">Buy Now</a>
+    </article>
+    <article class="card" data-editor-locked="true">
+      <h2>Canva Owner Account</h2><p>Canva owner account.</p>
+      <div class="price">৳1500</div>
+      <ul class="features"><li>Owner access</li><li>Easy ordering</li><li>Fast delivery</li></ul>
+      <a class="btn" href="order.html?product=canva-owner">Buy Now</a>
+    </article>
+  </div>
+</main>`;
+
+async function auth(){
+  const {data:{user}}=await sb.auth.getUser();
+  if(!user){location.href='admin.html';return null}
+  const {data:admin,error}=await sb.from('admin_users').select('id').eq('id',user.id).maybeSingle();
+  if(error||!admin){await sb.auth.signOut();location.href='admin.html';return null}
+  return user;
+}
+
+async function loadSaved(){
+  const {data,error}=await sb.from('site_pages').select('html,css').eq('slug','home').maybeSingle();
+  if(error) console.warn(error);
+  return data || {html:baseHTML,css:''};
+}
+
+async function start(){
+  const user=await auth(); if(!user)return;
+  status.textContent='Logged in as '+(user.email||'admin');
+  const saved=await loadSaved();
+  editor=grapesjs.init({
+    container:'#editor',
+    height:'100%',
+    fromElement:false,
+    storageManager:false,
+    selectorManager:{componentFirst:true},
+    components:saved.html || baseHTML,
+    style:saved.css || '',
+    blockManager:{
+      blocks:[
+        {id:'text',label:'Text',category:'Basic',content:'<p>Double-click to edit this text</p>'},
+        {id:'heading',label:'Heading',category:'Basic',content:'<h2>New Heading</h2>'},
+        {id:'button',label:'Button',category:'Basic',content:'<a class="btn" href="#">Button</a>'},
+        {id:'image',label:'Image',category:'Basic',content:{type:'image',src:'https://placehold.co/800x400?text=Your+Image'}},
+        {id:'section',label:'Section',category:'Layout',content:'<section style="padding:40px 20px"><h2>New Section</h2><p>Add your content here.</p></section>'},
+        {id:'spacer',label:'Spacer',category:'Layout',content:'<div style="height:50px"></div>'}
+      ]
+    },
+    canvas:{
+      styles:[],
+      scripts:[]
+    },
+    protectedCss:''
+  });
+}
+
+saveBtn.onclick=async()=>{
+  if(!editor)return;
+  saveBtn.disabled=true; saveBtn.textContent='Saving...';
+  const html=editor.getHtml();
+  const css=editor.getCss();
+  const {error}=await sb.from('site_pages').upsert({slug:'home',html,css,updated_at:new Date().toISOString()},{onConflict:'slug'});
+  if(error){status.textContent='Save failed: '+error.message}else{status.textContent='Saved ✓'}
+  saveBtn.disabled=false;saveBtn.textContent='Save Changes';
+};
+
+previewBtn.onclick=()=>{
+  if(!editor)return;
+  const html=editor.getHtml(),css=editor.getCss();
+  const w=window.open('','_blank');
+  w.document.write('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="styles.css"><style>'+css+'</style></head><body>'+html+'</body></html>');
+  w.document.close();
+};
+
+logoutBtn.onclick=async()=>{await sb.auth.signOut();location.href='admin.html'};
+start();
+</script>
+</body>
+</html>

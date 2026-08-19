@@ -105,3 +105,30 @@ $$;
 
 revoke all on function public.get_order_status(text,text) from public;
 grant execute on function public.get_order_status(text,text) to anon, authenticated;
+
+
+
+-- Visual editor storage
+create table if not exists site_pages (
+  id uuid primary key default gen_random_uuid(),
+  slug text unique not null,
+  html text not null default '',
+  css text not null default '',
+  updated_at timestamptz not null default now()
+);
+
+alter table site_pages enable row level security;
+
+drop policy if exists "public read site pages" on site_pages;
+create policy "public read site pages" on site_pages
+for select using (true);
+
+drop policy if exists "admins manage site pages" on site_pages;
+create policy "admins manage site pages" on site_pages
+for all to authenticated
+using (exists (select 1 from admin_users a where a.id = auth.uid()))
+with check (exists (select 1 from admin_users a where a.id = auth.uid()));
+
+insert into site_pages (slug,html,css)
+values ('home','', '')
+on conflict (slug) do nothing;

@@ -1,8 +1,22 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Canva Account Store</title><link rel="stylesheet" href="styles.css"></head><body>
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Canva Account Store</title><link rel="stylesheet" href="styles.css"><style id="savedPageStyles"></style></head><body>
+<div id="pageContent">
 <nav class="nav"><a class="logo" href="index.html">Canva Account Store</a><div class="navlinks"><a href="#products">Products</a><a href="order-status.html">Order Status</a><a class="btn" href="order.html">Buy Now</a></div></nav>
 <section class="hero"><h1>Choose Your Canva Account</h1><p>Simple ordering for Canva Pro and Owner accounts.</p></section>
 <main class="container" id="products"><div id="productsGrid" class="cards"></div></main>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script>
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-async function load(){const {data,error}=await sb.from('products').select('*').eq('is_active',true).order('name');if(error){productsGrid.innerHTML='<div class="card">Configure Supabase first.</div>';return}productsGrid.innerHTML=data.map(p=>`<article class="card"><h2>${p.name}</h2><p>${p.description||''}</p><div class="price">৳${Number(p.price).toLocaleString()}</div><ul class="features">${(p.features||[]).map(x=>`<li>${x}</li>`).join('')}</ul><a class="btn" href="order.html?product=${encodeURIComponent(p.slug)}">Buy Now</a></article>`).join('')}load();
+async function load(){
+  const saved=await sb.from('site_pages').select('html,css').eq('slug','home').maybeSingle();
+  if(saved.data && saved.data.html){
+    document.getElementById('pageContent').innerHTML=saved.data.html;
+    document.getElementById('savedPageStyles').textContent=saved.data.css||'';
+  }
+  const {data,error}=await sb.from('products').select('*').eq('is_active',true).order('name');
+  const grid=document.getElementById('productsGrid');
+  if(!grid)return;
+  if(error){grid.innerHTML='<div class="card">Unable to load products.</div>';return}
+  grid.innerHTML=data.map(p=>`<article class="card"><h2>${p.name}</h2><p>${p.description||''}</p><div class="price">৳${Number(p.price).toLocaleString()}</div><ul class="features">${(p.features||[]).map(x=>`<li>${x}</li>`).join('')}</ul><a class="btn" href="order.html?product=${encodeURIComponent(p.slug)}">Buy Now</a></article>`).join('');
+}
+load();
 </script></body></html>
