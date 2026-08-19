@@ -19,3 +19,8 @@ Public pages:
 
 Admin:
 - `/admin.html`
+
+
+## Visual Editor
+Open `/editor.html` after signing in as an admin. The editor lets you click, edit, drag, add text/buttons/sections/images, upload images, preview, and save the homepage design to Supabase.
+Run the Visual Editor SQL section in `supabase.sql` once to create `site_pages` and the `site-images` storage bucket/policies.

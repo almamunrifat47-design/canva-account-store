@@ -107,9 +107,8 @@ revoke all on function public.get_order_status(text,text) from public;
 grant execute on function public.get_order_status(text,text) to anon, authenticated;
 
 
-
--- Visual editor storage
-create table if not exists site_pages (
+-- Visual editor page storage
+create table if not exists public.site_pages (
   id uuid primary key default gen_random_uuid(),
   slug text unique not null,
   html text not null default '',
@@ -117,18 +116,52 @@ create table if not exists site_pages (
   updated_at timestamptz not null default now()
 );
 
-alter table site_pages enable row level security;
+alter table public.site_pages enable row level security;
 
-drop policy if exists "public read site pages" on site_pages;
-create policy "public read site pages" on site_pages
-for select using (true);
+drop policy if exists "public read site pages" on public.site_pages;
+create policy "public read site pages" on public.site_pages
+for select to anon, authenticated
+using (true);
 
-drop policy if exists "admins manage site pages" on site_pages;
-create policy "admins manage site pages" on site_pages
+drop policy if exists "admins manage site pages" on public.site_pages;
+create policy "admins manage site pages" on public.site_pages
 for all to authenticated
-using (exists (select 1 from admin_users a where a.id = auth.uid()))
-with check (exists (select 1 from admin_users a where a.id = auth.uid()));
+using (exists (select 1 from public.admin_users a where a.id = auth.uid()))
+with check (exists (select 1 from public.admin_users a where a.id = auth.uid()));
 
-insert into site_pages (slug,html,css)
+insert into public.site_pages (slug,html,css)
 values ('home','', '')
 on conflict (slug) do nothing;
+
+-- Public image storage for the visual editor.
+insert into storage.buckets (id,name,public)
+values ('site-images','site-images',true)
+on conflict (id) do update set public=true;
+
+drop policy if exists "public read site images" on storage.objects;
+create policy "public read site images" on storage.objects
+for select
+to public
+using (bucket_id='site-images');
+
+drop policy if exists "admins upload site images" on storage.objects;
+create policy "admins upload site images" on storage.objects
+for insert
+to authenticated
+with check (
+  bucket_id='site-images'
+  and exists (select 1 from public.admin_users a where a.id=auth.uid())
+);
+
+drop policy if exists "admins update site images" on storage.objects;
+create policy "admins update site images" on storage.objects
+for update
+to authenticated
+using (bucket_id='site-images' and exists (select 1 from public.admin_users a where a.id=auth.uid()))
+with check (bucket_id='site-images' and exists (select 1 from public.admin_users a where a.id=auth.uid()));
+
+drop policy if exists "admins delete site images" on storage.objects;
+create policy "admins delete site images" on storage.objects
+for delete
+to authenticated
+using (bucket_id='site-images' and exists (select 1 from public.admin_users a where a.id=auth.uid()));
